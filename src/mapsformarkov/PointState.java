@@ -10,10 +10,10 @@ public final class PointState implements MDPMapState, Serializable {
 	
 	private final int mapSize;
 	
-	private PointState(Point p, int mapSize)
+	private PointState(Point p, int mapWidth)
 	{
 		this.p = p;
-		this.mapSize = mapSize;
+		this.mapSize = mapWidth;
 	}
 
 	public Point getPoint() {
@@ -47,8 +47,8 @@ public final class PointState implements MDPMapState, Serializable {
     	return new PointState(new Point(Integer.parseInt(x.split(",")[0]), Integer.parseInt(x.split(",")[1])),mapSize);
     }
 
-	public static PointState newInstance(Point p, int mapSize) {
-		return new PointState(p, mapSize);
+	public static PointState newInstance(Point p, int mapWidth) {
+		return new PointState(p, mapWidth);
 	};
 
 }

@@ -27,7 +27,7 @@ public class MainMinimal {
 		
 		d.setDrawingPath(PointState.newInstance(new Point(32, 50), mdp.getWidth()), 100);
 		
-		GeneralizedValueFunction<MDPMapState, Double> optimalValue = ValueFunctions.getAverageValueOf(mdp, optimal, 100);
+		GeneralizedValueFunction<MDPMapState, Double> optimalValue = ValueFunctions.getValueFunctionBasedOnExpectedValue(mdp, optimal, 100);
 		d.setBackgroundColorToDraw(optimalValue);
 		
 		d.exportToFile("output/myexport.png");

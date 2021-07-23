@@ -34,7 +34,6 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 	public static final int width = 64;
 	public static final int height = 53;
 	public static final int NB_TILES = width*height;
-	public static final double CVAR_SKEWING_FACTOR = 0.8;
 	
 	
 	private MoveToGoalOnSlidingObstacleGridMDP(Set<Point> obstacles, Point goal) {
@@ -96,6 +95,8 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 		//this caching procedure allows saving time generating state probability distributions
 		//not needed, but good example of a simple optimization trick for MDPs
 		final int index = (1+s.getIndex())+(NB_TILES+1)*(MapAction.indexOf(a));
+		if(index>cacheConsequences.length)
+			throw new Error();
 		if(cacheConsequences[index]!=null)
 			return cacheConsequences[index];
 		
@@ -151,18 +152,18 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 	}
 
 	
-	public Set<MDPMapState> getNeighboursStates(Set<MDPMapState> original, Set<MDPMapState>toExclude) {
+	public static Set<MDPMapState> getNeighboursStates(Set<MDPMapState> original, Set<MDPMapState>toExclude, int width, int height) {
 		return (Set<MDPMapState>) original.stream()
 		.filter(x->!(x instanceof GoalReachedState))
 		.map(x->(PointState)x)
 		.map(x->{
 			Set<PointState> res = new HashSet<>();
-			if(x.getPoint().x>0) res.add(PointState.newInstance(new Point(x.getPoint().x-1, x.getPoint().y),getWidth()));
-			if(x.getPoint().y>0) res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y-1),getWidth()));
+			if(x.getPoint().x>0) res.add(PointState.newInstance(new Point(x.getPoint().x-1, x.getPoint().y),width));
+			if(x.getPoint().y>0) res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y-1),width));
 			if(x.getPoint().x<MoveToGoalOnSlidingObstacleGridMDP.width-1)
-				res.add(PointState.newInstance(new Point(x.getPoint().x+1, x.getPoint().y),getWidth()));
+				res.add(PointState.newInstance(new Point(x.getPoint().x+1, x.getPoint().y),height));
 			if(x.getPoint().y<MoveToGoalOnSlidingObstacleGridMDP.height-1)
-				res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y+1),getWidth()));
+				res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y+1),height));
 			return res;
 		})
 		.reduce(new HashSet(), (x,y)->{x.addAll(y);return x;})
