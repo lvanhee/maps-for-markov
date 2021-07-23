@@ -1,19 +1,14 @@
 package mapsformarkov;
 
-import java.awt.Component;
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import markov.MDP;
-import markov.caches.Cache;
-import markov.impl.PairImpl;
 import markov.impl.StateProbabilityDistributionHashImpl;
 
 /**
