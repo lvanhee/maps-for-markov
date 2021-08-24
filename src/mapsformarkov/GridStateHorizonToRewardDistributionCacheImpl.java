@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import cachingutils.Cache;
 import markov.impl.StateHorizonPair;
+import obstaclemaps.MinimalExample;
 
 public class GridStateHorizonToRewardDistributionCacheImpl<V> implements Cache<StateHorizonPair<MDPMapState>, V> {
 	
@@ -15,8 +16,8 @@ public class GridStateHorizonToRewardDistributionCacheImpl<V> implements Cache<S
 	
 	private GridStateHorizonToRewardDistributionCacheImpl(int horizon) {
 		this.horizon = horizon;
-		table = new ArrayList<V>(MoveToGoalOnSlidingObstacleGridMDP.NB_TILES * (horizon+2) + 1);
-		for(int i = 0 ; i < MoveToGoalOnSlidingObstacleGridMDP.NB_TILES * (horizon+2) + 1; i++)
+		table = new ArrayList<V>(MinimalExample.NB_TILES * (horizon+2) + 1);
+		for(int i = 0 ; i < MinimalExample.NB_TILES * (horizon+2) + 1; i++)
 			table.add(null);
 		
 		
@@ -40,7 +41,7 @@ public class GridStateHorizonToRewardDistributionCacheImpl<V> implements Cache<S
 		if(i.getState() instanceof GoalReachedState) return i.getHorizon();
 		PointState p =(PointState)i.getState();
 		
-		return p.getPoint().x + p.getPoint().y*MoveToGoalOnSlidingObstacleGridMDP.width + MoveToGoalOnSlidingObstacleGridMDP.NB_TILES*i.getHorizon()+horizon;
+		return p.getPoint().x + p.getPoint().y*MinimalExample.width + MinimalExample.NB_TILES*i.getHorizon()+horizon;
 	}
 
 	@Override

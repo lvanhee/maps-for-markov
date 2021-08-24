@@ -3,6 +3,7 @@ module mapsformarkov {
 	requires markov;
 	requires finitestatemachine;
 	requires cachingutils;
+	requires obstaclemaps;
 	exports mapsformarkov;
 	exports mapsformarkov.examples;
 }

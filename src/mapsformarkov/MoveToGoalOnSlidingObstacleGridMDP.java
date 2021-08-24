@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import markov.MDP;
 import markov.impl.StateProbabilityDistributionHashImpl;
+import obstaclemaps.MinimalExample;
+import obstaclemaps.ObstacleMap;
 
 /**
  * For students: this class demonstrates a more fully-fledged implementation of a MDP than in the basic example in the
@@ -29,15 +31,12 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 	public static final double DEFAULT_PENALITY_PER_ROUND_FOR_BATTERY_CONSUMPTION = -1;
 	public static final double SLIDE_OUT_PROBABILITY = 0.05;
 	
+	private final ObstacleMap map;
+	
 	private final Set<Point> obstacles;
 	private final Point goal;
-	public static final int width = 64;
-	public static final int height = 53;
-	public static final int NB_TILES = width*height;
-	
-	
 	private MoveToGoalOnSlidingObstacleGridMDP(Set<Point> obstacles, Point goal) {
-		this.obstacles = obstacles;
+		map = ObstacleMap.newInstance(obstacles);
 		this.goal = goal;
 	}
 	
@@ -46,8 +45,8 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 	public Set<MDPMapState> getAllStates() {
 		if(cacheStates.size()>0)return cacheStates;
 		
-		for(int i = 0 ; i < width ; i ++)
-			for(int j = 0 ; j < height ; j++)
+		for(int i = 0 ; i < MinimalExample.width ; i ++)
+			for(int j = 0 ; j < MinimalExample.height ; j++)
 				cacheStates.add(PointState.newInstance(new Point(i,j), this.getWidth()));
 		cacheStates.add(GoalReachedState.INSTANCE);
 		
@@ -66,9 +65,9 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 		res.remove(MapAction.STAND_BY);
 		if(p.getPoint().getX()<=0)
 			res.remove(MapAction.WEST);
-		if(p.getPoint().getX()>=width-1)
+		if(p.getPoint().getX()>=MinimalExample.width-1)
 			res.remove(MapAction.EAST);
-		if(p.getPoint().getY()>=height-1)
+		if(p.getPoint().getY()>=MinimalExample.height-1)
 			res.remove(MapAction.SOUTH);
 		if(p.getPoint().getY()<=0)
 			res.remove(MapAction.NORTH);
@@ -86,7 +85,7 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 		return DEFAULT_PENALITY_PER_ROUND_FOR_BATTERY_CONSUMPTION;
 	}
 
-	private final StateProbabilityDistributionHashImpl<MDPMapState>[] cacheConsequences = new StateProbabilityDistributionHashImpl[(NB_TILES+1)*MapAction.values().length];
+	private final StateProbabilityDistributionHashImpl<MDPMapState>[] cacheConsequences = new StateProbabilityDistributionHashImpl[(MinimalExample.NB_TILES+1)*MapAction.values().length];
 	@Override
 	public StateProbabilityDistributionHashImpl<MDPMapState> getConsequencesOf(MDPMapState s, MapAction a) {
 		
@@ -94,7 +93,7 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 				
 		//this caching procedure allows saving time generating state probability distributions
 		//not needed, but good example of a simple optimization trick for MDPs
-		final int index = (1+s.getIndex())+(NB_TILES+1)*(MapAction.indexOf(a));
+		final int index = (1+s.getIndex())+(MinimalExample.NB_TILES+1)*(MapAction.indexOf(a));
 		if(index>cacheConsequences.length)
 			throw new Error();
 		if(cacheConsequences[index]!=null)
@@ -125,7 +124,7 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 		neighborsOfTarget.add(new Point(target.x+1, target.y-1));
 		neighborsOfTarget.add(new Point(target.x+1, target.y));
 		neighborsOfTarget.add(new Point(target.x+1, target.y+1));
-		neighborsOfTarget = neighborsOfTarget.stream().filter(pt->pt.x>0  && pt.y>0 && pt.x<width && pt.y<height)
+		neighborsOfTarget = neighborsOfTarget.stream().filter(pt->pt.x>0  && pt.y>0 && pt.x<MinimalExample.width && pt.y<MinimalExample.height)
 				.collect(Collectors.toSet());
 		
 		
@@ -160,9 +159,9 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 			Set<PointState> res = new HashSet<>();
 			if(x.getPoint().x>0) res.add(PointState.newInstance(new Point(x.getPoint().x-1, x.getPoint().y),width));
 			if(x.getPoint().y>0) res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y-1),width));
-			if(x.getPoint().x<MoveToGoalOnSlidingObstacleGridMDP.width-1)
+			if(x.getPoint().x<MinimalExample.width-1)
 				res.add(PointState.newInstance(new Point(x.getPoint().x+1, x.getPoint().y),height));
-			if(x.getPoint().y<MoveToGoalOnSlidingObstacleGridMDP.height-1)
+			if(x.getPoint().y<MinimalExample.height-1)
 				res.add(PointState.newInstance(new Point(x.getPoint().x, x.getPoint().y+1),height));
 			return res;
 		})
@@ -174,11 +173,11 @@ public class MoveToGoalOnSlidingObstacleGridMDP implements MDP<MDPMapState, MapA
 
 
 	public int getWidth() {
-		return width;
+		return MinimalExample.width;
 	}
 
 
 	public int getHeight() {
-		return height;
+		return MinimalExample.height;
 	}
 }

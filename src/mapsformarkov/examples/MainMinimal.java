@@ -4,7 +4,7 @@ import java.awt.Point;
 
 import mapsformarkov.MDPMapState;
 import mapsformarkov.MapAction;
-import mapsformarkov.MapDisplayer;
+import mapsformarkov.MdpMapDisplayer;
 import mapsformarkov.MoveToGoalOnSlidingObstacleGridMDP;
 import mapsformarkov.PointState;
 import markov.GeneralizedValueFunction;
@@ -18,11 +18,11 @@ public class MainMinimal {
 	{
 		MoveToGoalOnSlidingObstacleGridMDP mdp = MapExample.getExampleMapMdp(26);
 		
-		MapDisplayer d = MapDisplayer.newInstance(mdp);
+		MdpMapDisplayer d = MdpMapDisplayer.newInstance(mdp);
 		d.setVisible(true);
 		
 		
-		Policy<MDPMapState, MapAction> optimal = Policies.getOptimalPolicy(mdp, 100);
+		Policy<MDPMapState, MapAction> optimal = Policies.getOptimalPolicy(mdp, 100, false);
 		d.setPolicyToDraw(optimal);
 		
 		d.setDrawingPath(PointState.newInstance(new Point(32, 50), mdp.getWidth()), 100);

@@ -2,6 +2,7 @@ package mapsformarkov;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -33,69 +34,57 @@ import markov.Policy;
 import markov.impl.PairImpl;
 import markov.impl.Policies;
 import markov.impl.ValueFunctions;
+import obstaclemaps.MapDisplayer;
+import obstaclemaps.MapDisplayerPanel;
 
-public class MapDisplayer extends JFrame {
-	private static final int TILEWIDTH = 10;
-	private static final int TILEHEIGHT = 10;
-	private static final int LEFTTILTPANEL = 1;
-	
+public class MdpMapDisplayer extends JFrame {
 	private MoveToGoalOnSlidingObstacleGridMDP mdp;
-	private Function<Point, Color> colorPerTile = (x)->Color.white;
 	private Policy<MDPMapState, MapAction> policyToDraw = null;
 	private GeneralizedValueFunction<MDPMapState, Double> valueFunction = null;
 	private MDPMapState startState = null;
 	private int horizon = 0;
 	private final MapDisplayedPanel panel;
-	
-	private MapDisplayer(MoveToGoalOnSlidingObstacleGridMDP mdp) {
+
+	private MdpMapDisplayer(MoveToGoalOnSlidingObstacleGridMDP mdp) {
 		this.mdp = mdp;
 		panel = new MapDisplayedPanel();
 		this.add(panel);
-		
+
 		repaint();
-		
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(panel.getTotalPanelWidth(),
 				panel.getTotalPanelHeight()));
 	}
-	
+
 	private class MapDisplayedPanel extends JPanel{
+		private final MapDisplayerPanel rawMap = MapDisplayerPanel.newInstance();
+		
 		public void paint(Graphics g) {
 			super.paint(g);
-			paintGrid(g);
+			rawMap.paint(g);
 			
-			paintObstacles(g);
 			paintPolicy(g);
 			paintPath((Graphics2D)g);
 			paintScale((Graphics2D)g);
 		}
-		
-		
-		public void exportToFile(String fileName) {
-			BufferedImage bu = new BufferedImage(getTotalPanelWidth(), getTotalPanelHeight(), BufferedImage.TYPE_INT_ARGB);
-			
-			paint(bu.getGraphics());
-			File outputfile = Paths.get(fileName).toFile();
-			try {
-				if(!outputfile.exists())
-					outputfile.createNewFile();
-				ImageIO.write(bu, "png", outputfile);
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new Error();
-			}
+
+
+		public int getTotalPanelHeight() {
+			return rawMap.getTotalPanelHeight();
 		}
 
-		private int getTotalPanelWidth() {
-			return mdp.getWidth()*TILEWIDTH+TILEWIDTH+100;
+
+		public int getTotalPanelWidth() {
+			return rawMap.getTotalPanelWidth()+100;
 		}
+
+
 		
-		private int getTotalPanelHeight() {
-			return mdp.getHeight()*TILEHEIGHT+TILEHEIGHT+28;
-		}
+
 
 		private void paintScale(Graphics2D g) {
-			
+
 			int maxX = getTotalPanelWidth()-120;
 			final int widthColorScale = 500;
 
@@ -106,12 +95,12 @@ public class MapDisplayer extends JFrame {
 				g.fill(drawingArea);
 				return;
 			}
-			
+
 			double minVal = ValueFunctions.getWorseValue(mdp.getAllStates(),valueFunction);
-			
-			
+
+
 			//int maxY = consideredPoints.stream().map(x->x.x).max(Integer::compare).get()*10;
-		
+
 			double fraction =  minVal/widthColorScale;
 			for(int i = 0; i <= widthColorScale; i++)
 			{
@@ -119,7 +108,7 @@ public class MapDisplayer extends JFrame {
 				float ratio = ((float) val/((float)-minVal)) +1f; 
 				g.setColor(new Color(ratio, ratio, 1-ratio));
 				g.drawRect(maxX+30, i+10, 40, 1);
-		
+
 				g.setColor(Color.black);
 				if(i%50==0) 
 				{
@@ -129,7 +118,7 @@ public class MapDisplayer extends JFrame {
 					g.drawLine(maxX+70, i+10, maxX+60, i+10);
 				}
 			}
-		
+
 			g.draw(drawingArea);
 		}
 
@@ -140,52 +129,21 @@ public class MapDisplayer extends JFrame {
 						Policies.getMostProbableTrajectoryFollowing(
 								mdp,
 								startState, horizon, policyToDraw);
-
-				for(int i = 0 ; i < l.size() ; i++)
-				{
-					if(l.get(i).getLeft().equals(GoalReachedState.INSTANCE)) break;
-					
-					Point p = ((PointState)l.get(i).getLeft()).getPoint();
-					int pX = LEFTTILTPANEL+p.x*10+5;
-					int pY = p.y*10+5;
-					int shiftX = 0;
-					int shiftY = 0;
-					if(l.get(i).getRight().equals(MapAction.EAST))
-						shiftX = 10;
-					if(l.get(i).getRight().equals(MapAction.WEST))
-						shiftX = -10;
-					if(l.get(i).getRight().equals(MapAction.SOUTH))
-						shiftY = 10;
-					if(l.get(i).getRight().equals(MapAction.NORTH))
-						shiftY = -10;
-
-					g.setStroke(new BasicStroke(3));
-					g.drawLine(pX, pY, pX+shiftX, pY+shiftY);
-				}
+				throw new Error();
 			}
 		}
 
-		private void paintObstacles(Graphics g) {
-			for(int i = 0 ;  i < mdp.getWidth(); i++)
-				for(int j = 0 ;  j < mdp.getHeight(); j++)
-					if(mdp.getObstacles().contains(new Point(i, j)))
-						paintTile(g,i,j,Color.black);
-		}
 
-		private void paintTile(Graphics g, int i, int j, Color c) {
-			g.setColor(c);
-			g.fillRect(LEFTTILTPANEL+i*TILEWIDTH, j*TILEHEIGHT, TILEWIDTH, TILEHEIGHT);
-		}
 
 		private void paintPolicy(Graphics g) {
 			if(policyToDraw==null)return;
 			for(MDPMapState s:mdp.getAllStates())
 			{
 				if(s instanceof GoalReachedState)continue;
-				
+
 				PointState p = (PointState)s;
-				
-				int centerX = LEFTTILTPANEL+p.getPoint().x*10+5;
+
+				int centerX = MapDisplayer.LEFTTILTPANEL+p.getPoint().x*10+5;
 				int centerY = p.getPoint().y*10+5;
 				switch(policyToDraw.apply(s)) {
 				case EAST: g.drawLine(centerX, centerY, centerX+5, centerY); break;
@@ -195,25 +153,18 @@ public class MapDisplayer extends JFrame {
 				default:break;
 				}
 			}
-			
+
 		}
 
-		private void paintGrid(Graphics g) {
-			for(int i = 0 ;  i < mdp.getWidth(); i++)
-				for(int j = 0 ;  j < mdp.getHeight(); j++)
-				{
-					paintTile(g, i, j, colorPerTile.apply(new Point(i, j)));
-										
-					g.setColor(Color.black);
-					g.drawRect(LEFTTILTPANEL+i*TILEWIDTH, j*TILEHEIGHT, TILEWIDTH, TILEHEIGHT);
-				}
-		}
+
+
+		
 	}
 
-	public static MapDisplayer newInstance(MoveToGoalOnSlidingObstacleGridMDP mdp) {
-		return new MapDisplayer(mdp);
+	public static MdpMapDisplayer newInstance(MoveToGoalOnSlidingObstacleGridMDP mdp) {
+		return new MdpMapDisplayer(mdp);
 	}
-	
+
 	public void setPolicyToDraw(Policy<MDPMapState, MapAction> p) {
 		this.policyToDraw = p;
 		repaint();
@@ -221,21 +172,23 @@ public class MapDisplayer extends JFrame {
 
 	public void setBackgroundColorToDraw(GeneralizedValueFunction<MDPMapState, Double> valuePerState) {
 		double minVal = mdp.getAllStates()
-					.stream()
-					.filter(x->! (x instanceof GoalReachedState))
-					.map(x->(PointState)x)
-					.filter(x->!mdp.getObstacles().contains(x.getPoint()))
-					.map(x->valuePerState.apply(x))
-					.min(Double::compare).get();
+				.parallelStream()
+				.filter(x->! (x instanceof GoalReachedState))
+				.map(x->(PointState)x)
+				.filter(x->!mdp.getObstacles().contains(x.getPoint()))
+				.map(x->valuePerState.apply(x))
+				.min(Double::compare).get();
 		valueFunction = valuePerState;
-		colorPerTile = x->
+		
+		panel.setColorPerTile(
+		 x->
 		{
 			if(mdp.getObstacles().contains(x)) return Color.black;
 			double val = valuePerState.apply(PointState.newInstance(x, mdp.getWidth()));
 			float ratio = ((float) val/((float)-minVal)) +1f; 
 			return new Color(ratio, ratio, 1-ratio);
-		};
-		
+		});
+
 		this.repaint();
 
 	}
@@ -250,4 +203,30 @@ public class MapDisplayer extends JFrame {
 		panel.exportToFile(fileName);
 	}
 
+	public void setPolicyAndFullyUpdate(Policy<MDPMapState, MapAction> pol,
+			PointState s0, int h,
+			GeneralizedValueFunction<MDPMapState, Double> valueFunctionFor, String fileName) {
+		this.setPolicyToDraw(pol);
+		this.setBackgroundColorToDraw(valueFunctionFor);
+		this.setDrawingPath(s0, h);
+
+		this.setTitle(fileName);
+
+		//Get Window Content Panel  
+		Container content=this.getContentPane();  
+		//Create Buffered Picture Object  
+		BufferedImage img=new BufferedImage( this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);  
+		//Get Graphic Objects  
+		Graphics2D g2d = img.createGraphics();  
+		//Output Window Content Panel to Graphic Object  
+		content.printAll(g2d);  
+		//Save as Picture  
+		try{
+			ImageIO.write(img, "jpg", new File("output/"+ fileName+".jpg"));
+		}catch (IOException e){
+			e.printStackTrace();
+		}
+		//Release graphic objects  
+		g2d.dispose();  
+	}
 }
